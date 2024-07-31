@@ -20,8 +20,24 @@ insert_guias_royalty = """
                        RETURNING id
                        """
 
+
 insert_comissoes = """
                    INSERT INTO comissoes (venda_id, vendedor_id, data_pagamento, valor, status)
                    VALUES (:venda_id, :vendedor_id, :data_pagamento, :valor, :status)
                    RETURNING id
                    """
+
+
+insert_guias_remessa = """
+                      INSERT INTO guias_remessa (venda_id, cliente_id, data_geracao, status, data_prevista_entrega)
+                      VALUES (:venda_id, :cliente_id, :data_geracao, :status, :data_prevista_entrega)
+                      """
+
+
+nova_associacao = """ INSERT INTO associacao (cliente_id, data_geracao, plano, ativo)
+                        VALUES (:cliente_id, :data_geracao, :plano, :ativo) """
+
+
+update_associacao = """ UPDATE associacao
+                      SET plano = :novo_plano
+                      WHERE cliente_id = :cliente_id """

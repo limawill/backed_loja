@@ -1,7 +1,7 @@
-import logging
 import pandas as pd
 from config import settings
 from sqlalchemy import text
+from datetime import datetime, timedelta
 from sqlalchemy.exc import SQLAlchemyError
 from tools.db_connection import PostgreSQLConnection
 
@@ -34,8 +34,6 @@ class ProdutoFisicoProcessor:
         """
         await self.db_connection.connect()
         session = self.db_connection.session
-        
-        df.to_csv("Teste.csv")
 
         try:
             # Converter DataFrame para um formato apropriado
@@ -53,16 +51,28 @@ class ProdutoFisicoProcessor:
                     'tipo_pagamento': row['detalhes_compra.tipo_pagamento']
                 })
                 venda_id = result.fetchone()[0]
+                
+                if row['detalhes_compra.tipo_produto'] == 'livro':
+                    # Inserir na tabela guias_royalty
+                    query_guias_royalty = text(
+                        settings.queries.insert_guias_royalty)
+                    session.execute(query_guias_royalty, {
+                        'venda_id': venda_id,
+                        'data_geracao': row['data'],
+                        'status': 'enviado',
+                        'valor': row['detalhes_compra.valor_royalty']
+                    })
 
-                # Inserir na tabela guias_royalty
-                query_guias_royalty = text(
-                    settings.queries.insert_guias_royalty)
-                session.execute(query_guias_royalty, {
-                    'venda_id': venda_id,
-                    'data_geracao': row['data'],
-                    'status': 'enviado',
-                    'valor': row['detalhes_compra.valor_royalty']
-                })
+                else:
+                    query_guias_remessa = text(
+                        settings.queries.insert_guias_remessa)
+                    session.execute(query_guias_remessa, {
+                        'venda_id': venda_id,
+                        'cliente_id': row['cliente_id'],
+                        'data_geracao': row['data'],
+                        'status': 'pendente',
+                        'data_prevista_entrega': datetime.now() + timedelta(days=15)
+                    })
 
                 # Inserir na tabela comissoes
                 query_comissoes = text(settings.queries.insert_comissoes)

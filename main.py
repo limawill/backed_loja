@@ -81,13 +81,14 @@ async def processar_compra(compra: Compra):
             logger.info('Tipo de compra: nova_associacao')
             # Lógica para nova_associacao (se necessário)
             compra_json.clear()
+        case "upgrade_associacao":
+            logger.info('Tipo de compra: nova_associacao')
+            # Lógica para nova_associacao (se necessário)
+            compra_json.clear()
         case "produto_fisico":
             logger.info('Tipo de compra: produto_fisico')
             # Converter detalhes_compra para DataFrame
             df = pd.json_normalize(compra_json)
-            # Adicionar um log para verificar o DataFrame
-            logger.info(f"DataFrame criado:\n{df.head()}")
-
             # Processar compra usando o produto_fisico_processor
             venda_id = await produto_fisico_processor.processar_compra(df)
             return {"message": "Compra processada com sucesso", "venda_id": venda_id}

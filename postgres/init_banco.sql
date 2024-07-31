@@ -132,3 +132,25 @@ CREATE TABLE IF NOT EXISTS  comissoes (
     FOREIGN KEY (venda_id) REFERENCES vendas(id),
     FOREIGN KEY (vendedor_id) REFERENCES vendedor(id)
 );
+
+
+CREATE TABLE IF NOT EXISTS guias_remessa (
+    id SERIAL PRIMARY KEY,
+    venda_id INTEGER NOT NULL,
+    cliente_id VARCHAR(20) NOT NULL,
+    data_geracao DATE NOT NULL,
+    status TEXT NOT NULL,
+    data_prevista_entrega DATE NOT NULL,
+    data_entrega DATE,
+    FOREIGN KEY (venda_id) REFERENCES vendas(id)
+);
+
+
+CREATE TABLE IF NOT EXISTS associacao (
+    id SERIAL PRIMARY KEY,
+    cliente_id VARCHAR(20) NOT NULL,
+    data_geracao DATE NOT NULL,
+    plano TEXT NOT NULL,
+    ativo BOOLEAN NOT NULL,
+    FOREIGN KEY (cliente_id) REFERENCES cliente(cpf)
+);
