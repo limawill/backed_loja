@@ -1,21 +1,17 @@
-# produto_fisico_processor.py
 import pandas as pd
-from typing import Any
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import text
+from tools.db_connection import PostgreSQLConnection
 
 
 class ProdutoFisicoProcessor:
-    def __init__(self, db_connection: Any):
-        self.db_connection = db_connection
-        self.engine = self.db_connection.engine
-        self.Session = sessionmaker(bind=self.engine)
+    def __init__(self):
+        self.db_connection = PostgreSQLConnection()
 
-    def processar_compra(self, df: pd.DataFrame) -> int:
+    async def processar_compra(self, df: pd.DataFrame) -> int:
         # Conectar ao banco de dados
-        session = self.Session()
+        await self.db_connection.connect()
+        session = self.db_connection.session
 
         print("Colunas do DataFrame:", df.columns)
         print("Primeiras linhas do DataFrame:", df.head())
@@ -24,7 +20,6 @@ class ProdutoFisicoProcessor:
         try:
             # Converter DataFrame para um formato apropriado
             for _, row in df.iterrows():
-
                 query = text("""
                 INSERT INTO vendas (data, cliente_id, vendedor_id, tipo_compra, produto_id, quantidade, preco, tipo_pagamento)
                 VALUES (:data, :cliente_id, :vendedor_id, :tipo_compra, :produto_id, :quantidade, :preco, :tipo_pagamento)
@@ -51,4 +46,4 @@ class ProdutoFisicoProcessor:
             raise Exception(f"Erro ao processar compra: {e}")
 
         finally:
-            session.close()
+            await self.db_connection.close()

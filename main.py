@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Inicialize o processador de produto físico com a conexão do banco de dados
-produto_fisico_processor = ProdutoFisicoProcessor(db_connection)
+produto_fisico_processor = ProdutoFisicoProcessor()
 
 # Inicializar FastAPI
 app = FastAPI()
@@ -88,7 +88,7 @@ async def processar_compra(compra: Compra):
             logger.info(f"DataFrame criado:\n{df.head()}")
 
             # Processar compra usando o produto_fisico_processor
-            venda_id = produto_fisico_processor.processar_compra(df)
+            venda_id = await produto_fisico_processor.processar_compra(df)
             return {"message": "Compra processada com sucesso", "venda_id": venda_id}
         case _:
             raise HTTPException(
