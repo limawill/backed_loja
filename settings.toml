@@ -4,3 +4,24 @@ port = 5432
 username = "user_teste"
 password = "S3cur3P4ssw0rd!"
 database = "postgres_teste"
+
+
+[queries]
+
+insert_livros = """
+                INSERT INTO vendas (data, cliente_id, vendedor_id, tipo_compra, produto_id, quantidade, preco, tipo_pagamento)
+                VALUES (:data, :cliente_id, :vendedor_id, :tipo_compra, :produto_id, :quantidade, :preco, :tipo_pagamento)
+                RETURNING id
+                """
+
+insert_guias_royalty = """
+                       INSERT INTO guias_royalty (venda_id, data_geracao, status, valor)
+                       VALUES (:venda_id, :data_geracao, :status, :valor)
+                       RETURNING id
+                       """
+
+insert_comissoes = """
+                   INSERT INTO comissoes (venda_id, vendedor_id, data_pagamento, valor, status)
+                   VALUES (:venda_id, :vendedor_id, :data_pagamento, :valor, :status)
+                   RETURNING id
+                   """

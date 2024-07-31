@@ -51,6 +51,7 @@ class DetalhesCompra(BaseModel):
     garantia: int = None
     autor: str = None
     isbn: str = None
+    valor_royalty: str = None
 
 
 class Compra(BaseModel):

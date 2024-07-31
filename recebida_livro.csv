@@ -1,2 +1,0 @@
-data,cliente_id,vendedor_id,tipo_compra,detalhes_compra.produto_id,detalhes_compra.tipo_produto,detalhes_compra.quantidade,detalhes_compra.preco,detalhes_compra.nome_produto,detalhes_compra.tipo_pagamento,detalhes_compra.especificacoes,detalhes_compra.garantia,detalhes_compra.autor,detalhes_compra.isbn
-2024-07-29,123.456.789-00,1,produto_fisico,8,livro,1,150.0,The Two Towers,PIX,null,0,J.R.R. Tolkien,978-0-618-00224-4

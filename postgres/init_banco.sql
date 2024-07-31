@@ -110,8 +110,6 @@ CREATE TABLE IF NOT EXISTS vendas (
     quantidade INTEGER NOT NULL,
     preco REAL NOT NULL,
     tipo_pagamento TEXT NOT NULL,
-    FOREIGN KEY (cliente_id) REFERENCES cliente(cpf),
-    FOREIGN KEY (vendedor_id) REFERENCES vendedor(id),
     FOREIGN KEY (produto_id) REFERENCES produtos(id)
 );
 
@@ -120,7 +118,7 @@ CREATE TABLE IF NOT EXISTS guias_royalty (
     venda_id INTEGER NOT NULL,
     data_geracao DATE NOT NULL,
     status TEXT NOT NULL,
-    valor REAL NOT NULL,
+    valor TEXT NOT NULL,
     FOREIGN KEY (venda_id) REFERENCES vendas(id)
 );
 
