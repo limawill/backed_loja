@@ -41,3 +41,6 @@ nova_associacao = """ INSERT INTO associacao (cliente_id, data_geracao, plano, a
 update_associacao = """ UPDATE associacao
                       SET plano = :novo_plano
                       WHERE cliente_id = :cliente_id """
+
+
+select_cliente = """ SELECT * FROM associacao WHERE cliente_id = :cpf """
