@@ -1,0 +1,6 @@
+pandas
+redis
+fastapi
+uvicorn
+sqlalchemy
+dynaconf

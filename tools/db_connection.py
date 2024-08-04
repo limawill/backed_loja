@@ -33,3 +33,4 @@ class PostgreSQLConnection:
 
 
 db_connection = PostgreSQLConnection()
+

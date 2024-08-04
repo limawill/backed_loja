@@ -1,8 +1,0 @@
-fastapi
-uvicorn
-asyncpg
-databases
-dynaconf
-pandas
-psycopg2-binary
-pytest

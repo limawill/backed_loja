@@ -1,33 +1,147 @@
-version: '3.8'
+version: '3'
 
 networks:
   default:
     driver: bridge
 
 services:
-  db:
-    image: postgres:13
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "8745:6379"
+    networks:
+      - default
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    ports:
+      - 8025:8025 # web ui
+      - 1025:1025 # smtp server
+    networks:
+      - default
+
+  postgres:
+    image: postgres:latest
+    restart: always
     environment:
       POSTGRES_USER: user_teste
       POSTGRES_PASSWORD: S3cur3P4ssw0rd!
       POSTGRES_DB: postgres_teste
-    volumes:
-      - ./postgres/init_banco.sql:/docker-entrypoint-initdb.d/init_banco.sql
     ports:
       - "5432:5432"
+    volumes:
+      - ./postgres/init_banco.sql:/docker-entrypoint-initdb.d/init_banco.sql
     networks:
       - default
 
-  web:
-    build: .
-    command: uvicorn main:app --host 0.0.0.0 --port 8000
+  app1:
+    build:
+      context: ./app1
+      dockerfile: Dockerfile
+    container_name: app1
     volumes:
-      - .:/app
+      - ./app1:/app
+    depends_on:
+      - redis
+      - postgres
     ports:
       - "8001:8000"
-    depends_on:
-      - db
-    environment:
-      - DATABASE_URL=postgresql+psycopg2://user_teste:S3cur3P4ssw0rd!@db:5432/postgres_teste
+    restart: always
     networks:
       - default
+
+  produto_fisico:
+    build:
+      context: .
+      dockerfile: produto_fisico/Dockerfile
+    container_name: produto_fisico
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - postgres
+    restart: always
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+psycopg2://user_teste:S3cur3P4ssw0rd!@postgres:5432/postgres_teste
+      - ENV_FOR_DYNACONF=development
+    networks:
+      - default
+
+  processar_associacao:
+    build:
+      context: .
+      dockerfile: processar_associacao/Dockerfile
+    container_name: processar_associacao
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - postgres
+      - mailhog
+    restart: always
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+psycopg2://user_teste:S3cur3P4ssw0rd!@postgres:5432/postgres_teste
+      - ENV_FOR_DYNACONF=development
+      - MAILHOG_HOST=mailhog
+    networks:
+      - default
+
+  processar_streaming:
+    build:
+      context: .
+      dockerfile: processar_streaming/Dockerfile
+    container_name: processar_streaming
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - postgres
+      - mailhog
+    restart: always
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+psycopg2://user_teste:S3cur3P4ssw0rd!@postgres:5432/postgres_teste
+      - ENV_FOR_DYNACONF=development
+      - MAILHOG_HOST=mailhog
+    networks:
+      - default
+
+  processar_comissao:
+    build:
+      context: .
+      dockerfile: processar_comissao/Dockerfile
+    container_name: comissao
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - postgres
+    restart: always
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+psycopg2://user_teste:S3cur3P4ssw0rd!@postgres:5432/postgres_teste
+      - ENV_FOR_DYNACONF=development
+    networks:
+      - default
+
+  processar_guia_remessa:
+    build:
+      context: .
+      dockerfile: processar_guia_remessa/Dockerfile
+    container_name: guia_remessa
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - postgres
+    restart: always
+    environment:
+      - PYTHONPATH=/app
+      - DATABASE_URL=postgresql+psycopg2://user_teste:S3cur3P4ssw0rd!@postgres:5432/postgres_teste
+      - ENV_FOR_DYNACONF=development
+    networks:
+      - default  

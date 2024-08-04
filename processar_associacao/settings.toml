@@ -1,0 +1,36 @@
+[redis]
+host = "redis"
+port = 6379
+
+[database]
+host = "postgres"
+port = 5432
+username = "user_teste"
+password = "S3cur3P4ssw0rd!"
+database = "postgres_teste"
+
+[mailhog]
+smtp_host = "mailhog"
+smtp_port = 1025
+
+[queries]
+
+nova_associacao = """ INSERT INTO associacao (cliente_id, vendedor_id, data_geracao, plano, ativo)
+                        VALUES (:cliente_id, :vendedor_id, :data_geracao, :plano, :ativo) """
+
+
+update_associacao = """ UPDATE associacao
+                    SET plano = :novo_plano
+                    WHERE cliente_id = :cliente_id """
+
+
+select_cliente = """ SELECT assoc.*, cli.nome, cli.email FROM associacao assoc
+                INNER JOIN cliente cli ON assoc.cliente_id = cli.cpf 
+                WHERE assoc.cliente_id = :cpf """
+
+
+ativacao_associacao = """ UPDATE associacao
+                    SET ativo = :ativo
+                    WHERE cliente_id = :cliente_id """
+
+select_email_cliente = """ SELECT nome, email FROM cliente WHERE cpf = :cpf """

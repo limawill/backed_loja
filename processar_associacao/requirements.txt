@@ -1,0 +1,7 @@
+pandas
+redis
+sqlalchemy
+psycopg2-binary
+dynaconf
+databases
+requests

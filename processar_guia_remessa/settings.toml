@@ -1,0 +1,47 @@
+[redis]
+host = "redis"
+port = 6379
+
+[database]
+host = "postgres"
+port = 5432
+username = "user_teste"
+password = "S3cur3P4ssw0rd!"
+database = "postgres_teste"
+
+[empresa]
+Nome = "Nova Terra Comércio Ltda."
+Endereco = "Rua Dr. José Maria Rodrigues, 123, Centro, CEP 13010-010"
+Cidade_estado = "Campinas, São Paulo"
+Telefone = "(19) 3232-1111"
+CNPJ = "43.745.219/0001-55"
+Peso_total = "20.0"
+Volume = "1"
+Transportadora = "Rápido Norte Transportes Ltda."
+Observacao_venda = "Fragil - Manusear com cuidado"
+
+[queries]
+
+gera_guia_remessa = """SELECT 
+                    	CONCAT('GR-', vend.id) as numero_guia,
+						TO_CHAR(CURRENT_DATE, 'DD/MM/YYYY')  AS data_emissao,
+						client.nome as destinatario_nome,
+						client.telefone as destinatario_telefone,
+						concat(client.endereco, ', ', client.cidade, '/', client.estado, ' - ', client.cep) AS destinatario_endereco,
+						client.cpf as destinatario_cnpj,
+						prod.id as produto_codigo,
+						prod.nome as produto_descricao,
+						prod.tipo as produto_tipo,
+						vend.quantidade as produto_quantidade,
+						vend.preco as produto_valor_unitario,
+						vend.preco * vend.quantidade as produto_valor_total,
+						vend.tipo_pagamento as condicoes_pagamento,
+						CASE WHEN prod.tipo LIKE '%livro%' THEN TRUE ELSE FALSE END AS royalty
+                    FROM 
+                    	cliente client
+                    JOIN
+                    	vendas vend on vend.cliente_id = client.cpf 
+                    JOIN 
+                    	produtos prod on vend.produto_id = prod.id 
+                    WHERE
+                    	vend.id = :codigo_venda """

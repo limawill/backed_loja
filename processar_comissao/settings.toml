@@ -1,0 +1,29 @@
+[redis]
+host = "redis"
+port = 6379
+
+[database]
+host = "postgres"
+port = 5432
+username = "user_teste"
+password = "S3cur3P4ssw0rd!"
+database = "postgres_teste"
+
+[queries]
+
+calcular_comissao_geral = """SELECT 
+                                v.id AS id,
+                                v.nome AS nome_vendedor,
+                                SUM(vf.quantidade) AS total_vendas,
+                                SUM(vf.quantidade * vf.preco) AS total_vendas_valor,
+                                SUM(vf.quantidade * vf.preco * (v.porcentagem / 100)) AS total_recebimentos
+                            FROM
+                                vendedor v
+                            JOIN
+                                vendas vf ON v.id = vf.vendedor_id 
+                            WHERE 
+                                extract(month FROM vf."data") = :mes
+                                AND extract(year FROM vf."data") = :ano
+                                AND (:vendedor_id is null or vf.vendedor_id  = :vendedor_id) 
+                            GROUP BY
+                                v.id;"""
