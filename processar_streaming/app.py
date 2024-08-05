@@ -75,12 +75,11 @@ class VideoProcessor:
         Returns:
             Optional[dict]: Dicionário com o CPF do cliente e os detalhes dos vídeos, ou None se o processamento falhar.
         """
+
         await self.db_connection.connect()
         session = self.db_connection.session
 
-        required_columns = ['data', 'cliente_id',
-                            'detalhes_compra.id_streaming']
-        if not all(col in df.columns for col in required_columns):
+        if not all(col in df.columns for col in settings.colunas_obrigatorias.required_columns):
             logger.error("DataFrame não contém todas as colunas necessárias")
             await self.db_connection.close()
             return None
@@ -88,20 +87,21 @@ class VideoProcessor:
         try:
             for _, row in df.iterrows():
                 logger.info("Localizando dados do vídeo solicitado")
-                query = text(settings.queries.select_streaming)
-                result = session.execute(
-                    query, {'id_steaming': row['detalhes_compra.id_streaming']})
-                rows = result.fetchall()
-                dados_video = pd.DataFrame(rows, columns=result.keys())
-
-                logger.info(f"Video  : {dados_video}")
+                dados_video = await self.db_connection.executa_busca_retorna_df(
+                    session,
+                    settings.queries.select_streaming,
+                    df,
+                    {"detalhes_compra.id_streaming": "id_steaming"},
+                )
 
                 logger.info("Localizando dados do cliente")
-                query = text(settings.queries.select_email_cliente)
-                result = session.execute(query, {'cpf': row['cliente_id']})
-                rows = result.fetchall()
-                dados_cliente = pd.DataFrame(rows, columns=result.keys())
 
+                dados_cliente = await self.db_connection.executa_busca_retorna_df(
+                    session,
+                    settings.queries.select_email_cliente,
+                    df,
+                    {"cliente_id": "cpf"},
+                )
                 logger.info(f"Cliente: {dados_cliente}")
 
                 if not dados_video.empty and not dados_cliente.empty:

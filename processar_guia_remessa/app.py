@@ -1,6 +1,7 @@
 import json
 import redis
 import asyncio
+import numpy as np
 import pandas as pd
 from sqlalchemy import text
 from typing import Optional, Dict
@@ -15,6 +16,7 @@ class GerarGuiaRemessa:
     """
     Classe para gerar guias de remessa com base em dados fornecidos e enviar resultados através de Redis.
     """
+
     def __init__(self):
         """
         Inicializa o objeto GerarGuiaRemessa, configurando a conexão Redis e PostgreSQL.
@@ -43,7 +45,7 @@ class GerarGuiaRemessa:
                     'codigo_venda': int(row['codigo_venda'])})
                 rows = result.fetchall()
                 guia_remessa = pd.DataFrame(rows, columns=result.keys())
-                
+
                 if not guia_remessa.empty:
                     novo_guia_remessa = JsonConverter().adiciona_to_json(guia_remessa)
                     logger.info("Gerando a guia ...")
@@ -52,6 +54,7 @@ class GerarGuiaRemessa:
                     return json_data
                 else:
                     return None
+
         except SQLAlchemyError as e:
             session.rollback()
             logger.error(f"Erro ao criar guia remessa: {e}")

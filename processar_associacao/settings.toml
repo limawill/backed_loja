@@ -13,6 +13,33 @@ database = "postgres_teste"
 smtp_host = "mailhog"
 smtp_port = 1025
 
+[colunas_obrigatorias]
+insert_colunas = [
+    'data',
+    'cliente_id',
+    'vendedor_id',
+    'detalhes_compra.nome_plano',
+    'detalhes_compra.ativo',
+]
+
+upgrade_colunas = [
+    'data',
+    'cliente_id',
+    'vendedor_id',
+    'detalhes_compra.nome_plano',
+    'detalhes_compra.ativo',
+]
+
+reativacao_colunas = [
+    'data',
+    'cliente_id',
+    'vendedor_id',
+    'detalhes_compra.nome_plano',
+    'detalhes_compra.ativo',
+]
+
+
+
 [queries]
 
 nova_associacao = """ INSERT INTO associacao (cliente_id, vendedor_id, data_geracao, plano, ativo)

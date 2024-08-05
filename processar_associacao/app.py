@@ -14,6 +14,7 @@ class AssocProcess:
     """
     Classe para processar associações de clientes e enviar e-mails de confirmação.
     """
+
     def __init__(self):
         """
         Inicializa o objeto AssocProcess, configurando a conexão Redis, PostgreSQL e Mailhog.
@@ -81,31 +82,34 @@ class AssocProcess:
         await self.db_connection.connect()
         session = self.db_connection.session
 
-        required_columns = [
-            'data', 'cliente_id', 'vendedor_id',
-            'detalhes_compra.nome_plano', 'detalhes_compra.ativo'
-        ]
-        if not all(col in df.columns for col in required_columns):
+        if not all(col in df.columns for col in settings.colunas_obrigatorias.insert_colunas):
             logger.error("DataFrame não contém todas as colunas necessárias")
             await self.db_connection.close()
             return False
 
         try:
             for _, row in df.iterrows():
-                query = text(settings.queries.nova_associacao)
-                session.execute(query, {
-                    'data_geracao': row['data'],
-                    'cliente_id': row['cliente_id'],
-                    'vendedor_id': row['vendedor_id'],
-                    'plano': row['detalhes_compra.nome_plano'],
-                    'ativo': row['detalhes_compra.ativo']
-                })
-                session.commit()
 
-                query = text(settings.queries.select_email_cliente)
-                result = session.execute(query, {'cpf': row['cliente_id']})
-                rows = result.fetchall()
-                dados_cliente = pd.DataFrame(rows, columns=result.keys())
+                logger.info("Inserindo cliente no banco")
+
+                await self.db_connection.executa_insercao(
+                    session,
+                    settings.queries.nova_associacao,
+                    df,
+                    {"data": "data_geracao",
+                     "cliente_id": "cliente_id",
+                     "vendedor_id": "vendedor_id",
+                     "detalhes_compra.nome_plano": "plano",
+                     "detalhes_compra.ativo": "ativo"},
+                )
+
+                logger.info("Localizando dados do cliente e enviado email")
+                dados_cliente = await self.db_connection.executa_busca_retorna_df(
+                    session,
+                    settings.queries.select_email_cliente,
+                    df,
+                    {"cliente_id": "cpf"},
+                )
 
                 if await self.envia_email_cliente(dados_cliente, 'Assinatura'):
                     logger.info("Email enviado com sucesso")
@@ -134,11 +138,7 @@ class AssocProcess:
         await self.db_connection.connect()
         session = self.db_connection.session
 
-        required_columns = [
-            'data', 'cliente_id', 'vendedor_id',
-            'detalhes_compra.nome_plano', 'detalhes_compra.ativo'
-        ]
-        if not all(col in df.columns for col in required_columns):
+        if not all(col in df.columns for col in settings.colunas_obrigatorias.upgrade_colunas):
             logger.error("DataFrame não contém todas as colunas necessárias")
             await self.db_connection.close()
             return False
@@ -147,20 +147,27 @@ class AssocProcess:
             for _, row in df.iterrows():
                 logger.info(f"Processando upgrade de associação para o cliente {
                             row['cliente_id']}")
-                query = text(settings.queries.select_cliente)
-                result = session.execute(query, {'cpf': row['cliente_id']})
-                rows = result.fetchall()
-                dados_cliente = pd.DataFrame(rows, columns=result.keys())
+                dados_cliente = await self.db_connection.executa_busca_retorna_df(
+                    session,
+                    settings.queries.select_cliente,
+                    df,
+                    {"cliente_id": "cpf"},
+                )
 
                 if not dados_cliente.empty:
                     logger.info(f"Cliente encontrado: {row['cliente_id']}")
+
                     if dados_cliente['ativo'].str.contains('true', case=False, na=False).any():
-                        query = text(settings.queries.update_associacao)
-                        session.execute(query, {
-                            'novo_plano': row['detalhes_compra.nome_plano'],
-                            'cliente_id': row['cliente_id']
-                        })
-                        session.commit()
+
+                        await self.db_connection.executa_insercao(
+                            session,
+                            settings.queries.update_associacao,
+                            df,
+                            {"cliente_id": "cliente_id",
+                             "detalhes_compra.nome_plano": "plano"
+                             },
+                        )
+
                         if await self.envia_email_cliente(dados_cliente, 'Upgrade'):
                             logger.info("Email enviado com sucesso")
                             return True
@@ -188,11 +195,7 @@ class AssocProcess:
         await self.db_connection.connect()
         session = self.db_connection.session
 
-        required_columns = [
-            'data', 'cliente_id', 'vendedor_id',
-            'detalhes_compra.nome_plano', 'detalhes_compra.ativo'
-        ]
-        if not all(col in df.columns for col in required_columns):
+        if not all(col in df.columns for col in settings.colunas_obrigatorias.reativacao_colunas):
             logger.error("DataFrame não contém todas as colunas necessárias")
             await self.db_connection.close()
             return False
@@ -201,20 +204,27 @@ class AssocProcess:
             for _, row in df.iterrows():
                 logger.info(f"Processando ativação associação {
                             row['cliente_id']}")
-                query = text(settings.queries.select_cliente)
-                result = session.execute(query, {'cpf': row['cliente_id']})
-                rows = result.fetchall()
-                dados_cliente = pd.DataFrame(rows, columns=result.keys())
+
+                dados_cliente = await self.db_connection.executa_busca_retorna_df(
+                    session,
+                    settings.queries.select_cliente,
+                    df,
+                    {"cliente_id": "cpf"},
+                )
 
                 if not dados_cliente.empty:
                     logger.info(f"Cliente encontrado: {row['cliente_id']}")
                     if not dados_cliente['ativo'].str.contains('sim', case=False, na=False).any():
-                        query = text(settings.queries.ativacao_associacao)
-                        session.execute(query, {
-                            'ativo': row['detalhes_compra.ativo'],
-                            'cliente_id': row['cliente_id']
-                        })
-                        session.commit()
+
+                        await self.db_connection.executa_insercao(
+                            session,
+                            settings.queries.ativacao_associacao,
+                            df,
+                            {"cliente_id": "cliente_id",
+                             "detalhes_compra.ativo": "ativo"
+                             },
+                        )
+
                         if await self.envia_email_cliente(dados_cliente, 'Ativação'):
                             logger.info("Email enviado com sucesso")
                             return True

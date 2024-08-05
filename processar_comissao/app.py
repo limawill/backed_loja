@@ -2,6 +2,7 @@ import json
 import time
 import redis
 import asyncio
+import numpy as np
 import pandas as pd
 from sqlalchemy import text
 from typing import Optional, Dict

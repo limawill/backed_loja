@@ -9,6 +9,13 @@ username = "user_teste"
 password = "S3cur3P4ssw0rd!"
 database = "postgres_teste"
 
+[colunas_obrigatorias]
+required_columns = [
+            'data', 'cliente_id', 'vendedor_id', 'tipo_compra',
+            'detalhes_compra.produto_id', 'detalhes_compra.quantidade',
+            'detalhes_compra.preco', 'detalhes_compra.tipo_pagamento']
+
+
 [queries]
 
 insert_livros = """

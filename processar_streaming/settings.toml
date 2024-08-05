@@ -13,6 +13,9 @@ database = "postgres_teste"
 smtp_host = "mailhog"
 smtp_port = 1025
 
+[colunas_obrigatorias]
+required_columns = ['data', 'cliente_id', 'detalhes_compra.id_streaming']
+
 [queries]
 select_streaming = """SELECT 
                         nome, link 
@@ -27,7 +30,8 @@ select_streaming = """SELECT
                     WHERE 
                         :id_steaming = 1 AND id IN (1, 2);"""
 
-select_email_cliente = """ SELECT        nome, email, cpf
+select_email_cliente = """ SELECT 
+                                nome, email, cpf
                             FROM 
                                 cliente 
                             WHERE 
