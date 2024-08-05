@@ -9,18 +9,45 @@ from sqlalchemy.exc import SQLAlchemyError
 from tools.db_connection import PostgreSQLConnection
 
 class VendaProcessor:
+    """
+    Classe para processar vendas de livros e gerenciar a inserção de dados em várias tabelas no banco de dados.
+    """
     def __init__(self):
+        """
+        Inicializa a instância do VendaProcessor com conexão Redis e conexão com banco de dados.
+        """
         self.r = redis.Redis(host=settings.redis.host, port=settings.redis.port)
         self.last_id = '0-0'
         self.db_connection = PostgreSQLConnection()
 
     async def connect_db(self):
+        """
+        Estabelece a conexão com o banco de dados.
+        
+        Returns:
+            None
+        """
         await self.db_connection.connect()
 
     async def close_db(self):
+        """
+        Fecha a conexão com o banco de dados.
+
+        Returns:
+            None
+        """
         await self.db_connection.close()
 
     async def insere_venda_livro(self, df: pd.DataFrame) -> int:
+        """
+        Insere dados de venda de livros no banco de dados e atualiza tabelas relacionadas.
+
+        Args:
+            df (pd.DataFrame): DataFrame contendo os dados da venda.
+
+        Returns:
+            int: ID da venda inserida, ou None se a inserção falhar.
+        """
         await self.connect_db()
         session = self.db_connection.session
 
@@ -92,6 +119,15 @@ class VendaProcessor:
             await self.close_db()
 
     async def process_message(self, message):
+        """
+        Processa mensagens recebidas do Redis, insere dados da venda e atualiza o status no Redis.
+
+        Args:
+            message: Mensagem recebida do Redis.
+
+        Returns:
+            None
+        """
         stream, message_data = message
 
         for msg_id, msg in message_data:
@@ -113,6 +149,12 @@ class VendaProcessor:
             self.last_id = msg_id
 
     async def main(self):
+        """
+        Loop principal que lê mensagens do Redis e processa as vendas.
+
+        Returns:
+            None
+        """
         while True:
             messages = self.r.xread({'stream_app1_app3': self.last_id}, block=1000)
             if messages:

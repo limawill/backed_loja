@@ -11,7 +11,14 @@ from tools.db_connection import PostgreSQLConnection
 
 
 class VideoProcessor:
+    """
+    Classe para processar vídeos e enviar e-mails aos clientes com os detalhes dos vídeos disponíveis.
+    """
+
     def __init__(self):
+        """
+        Inicializa a instância do VideoProcessor com conexão Redis, conexão com banco de dados e Mailhog.
+        """
         self.r = redis.Redis(host=settings.redis.host,
                              port=settings.redis.port)
         self.last_id = '0-0'
@@ -19,6 +26,16 @@ class VideoProcessor:
         self.mailhog = Mailhog()
 
     async def envia_email_cliente(self, df_cliente: pd.DataFrame, df_video: pd.DataFrame) -> Optional[dict]:
+        """
+        Envia um e-mail para o cliente com os detalhes dos vídeos disponíveis.
+
+        Args:
+            df_cliente (pd.DataFrame): DataFrame contendo os dados do cliente.
+            df_video (pd.DataFrame): DataFrame contendo os detalhes dos vídeos disponíveis.
+
+        Returns:
+            Optional[dict]: Dicionário com o CPF do cliente e os detalhes dos vídeos, ou None se o envio falhar.
+        """
         nome = df_cliente['nome'].values[0]
         email = df_cliente['email'].values[0]
         titulo = "Seu vídeo está disponível!"
@@ -49,6 +66,15 @@ class VideoProcessor:
             return None
 
     async def envio_video(self, df: pd.DataFrame) -> Optional[dict]:
+        """
+        Processa a solicitação de vídeo, localiza os dados do cliente e do vídeo, e envia um e-mail com os detalhes.
+
+        Args:
+            df (pd.DataFrame): DataFrame contendo as informações da solicitação de vídeo.
+
+        Returns:
+            Optional[dict]: Dicionário com o CPF do cliente e os detalhes dos vídeos, ou None se o processamento falhar.
+        """
         await self.db_connection.connect()
         session = self.db_connection.session
 
@@ -95,6 +121,15 @@ class VideoProcessor:
             await self.db_connection.close()
 
     async def process_message(self, message):
+        """
+        Processa as mensagens recebidas do Redis, executa o envio de vídeo e atualiza o status no Redis.
+
+        Args:
+            message: Mensagem recebida do Redis.
+
+        Returns:
+            None
+        """
         stream, message_data = message
         for msg_id, msg in message_data:
             json_data = msg[b'data'].decode('utf-8')
@@ -114,6 +149,12 @@ class VideoProcessor:
             self.last_id = msg_id
 
     async def main(self):
+        """
+        Loop principal que lê mensagens do Redis e processa as solicitações de vídeo.
+
+        Returns:
+            None
+        """
         while True:
             messages = self.r.xread(
                 {'stream_app1_app4': self.last_id}, block=1000)

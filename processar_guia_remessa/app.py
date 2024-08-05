@@ -12,13 +12,28 @@ from tools.db_connection import PostgreSQLConnection
 
 
 class GerarGuiaRemessa:
+    """
+    Classe para gerar guias de remessa com base em dados fornecidos e enviar resultados através de Redis.
+    """
     def __init__(self):
+        """
+        Inicializa o objeto GerarGuiaRemessa, configurando a conexão Redis e PostgreSQL.
+        """
         self.r = redis.Redis(host=settings.redis.host,
                              port=settings.redis.port)
         self.last_id = '0-0'
         self.db_connection = PostgreSQLConnection()
 
     async def gera_guira_remessa(self, df: pd.DataFrame) -> json:
+        """
+        Gera a guia de remessa com base nos dados fornecidos.
+
+        Args:
+            df (pd.DataFrame): DataFrame contendo os detalhes da venda.
+
+        Returns:
+            json: JSON contendo os dados da guia de remessa ou None se não houver dados.
+        """
         await self.db_connection.connect()
         session = self.db_connection.session
         try:
@@ -45,6 +60,12 @@ class GerarGuiaRemessa:
             await self.db_connection.close()
 
     async def process_message(self, message):
+        """
+        Processa uma mensagem recebida do stream Redis.
+
+        Args:
+            message: Mensagem recebida do stream Redis.
+        """
         stream, message_data = message
 
         for msg_id, msg in message_data:
@@ -64,6 +85,9 @@ class GerarGuiaRemessa:
             self.last_id = msg_id
 
     async def main(self):
+        """
+        Método principal que lê mensagens do stream Redis e gera guias de remessa.
+        """
         while True:
             messages = self.r.xread(
                 {'stream_app1_app6': self.last_id}, block=1000)

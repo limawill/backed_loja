@@ -4,7 +4,20 @@ from config import settings, logger
 
 
 class JsonConverter:
+    """
+    Classe para converter DataFrames em JSON e adicionar campos faltantes aos DataFrames.
+    """
+
     def convert_to_json(self, df):
+        """
+        Converte um DataFrame em um JSON formatado.
+
+        Args:
+            df (pd.DataFrame): DataFrame contendo os dados da guia de remessa.
+
+        Returns:
+            str: JSON formatado contendo os dados da guia de remessa.
+        """
         data = {}
 
         logger.info("Preencha os campos da guia")
@@ -44,7 +57,15 @@ class JsonConverter:
         return json_data
 
     def adiciona_to_json(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Adiciona campos faltantes ao DataFrame com base nas configurações da empresa.
 
+        Args:
+            df (pd.DataFrame): DataFrame contendo os dados da guia de remessa.
+
+        Returns:
+            pd.DataFrame: DataFrame atualizado com os campos adicionados.
+        """
         logger.info("Preencha os campos faltantes ...")
         df['remetente_nome'] = settings.empresa.Nome
         df['remetente_endereco'] = settings.empresa.Endereco

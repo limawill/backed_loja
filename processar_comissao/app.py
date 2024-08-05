@@ -15,11 +15,27 @@ r = redis.Redis(host=settings.redis.host, port=settings.redis.port)
 
 
 class CalculoComissaoVendas():
+    """
+    Classe para calcular comissões de vendedores com base em dados fornecidos e enviar resultados através de Redis.
+    """
+
     def __init__(self):
+        """
+        Inicializa o objeto CalculoComissaoVendas, configurando a conexão Redis e PostgreSQL.
+        """
         self.last_id = '0-0'
         self.db_connection = PostgreSQLConnection()
 
     async def comissao_vendedores(self, df: pd.DataFrame) -> Optional[dict]:
+        """
+        Calcula a comissão dos vendedores com base nos dados fornecidos.
+
+        Args:
+            df (pd.DataFrame): DataFrame contendo os detalhes das vendas.
+
+        Returns:
+            Optional[dict]: Uma lista de dicionários contendo as comissões dos vendedores ou None se houver um erro.
+        """
         await self.db_connection.connect()
         session = self.db_connection.session
         try:
@@ -51,6 +67,12 @@ class CalculoComissaoVendas():
             await self.db_connection.close()
 
     async def process_message(self, message):
+        """
+        Processa uma mensagem recebida do stream Redis.
+
+        Args:
+            message: Mensagem recebida do stream Redis.
+        """
         stream, message_data = message
 
         for msg_id, msg in message_data:
@@ -80,6 +102,9 @@ class CalculoComissaoVendas():
             self.last_id = msg_id
 
     async def main(self):
+        """
+        Método principal que lê mensagens do stream Redis e processa as comissões dos vendedores.
+        """
         while True:
             messages = r.xread({'stream_app1_app5': self.last_id}, block=1000)
             if messages:

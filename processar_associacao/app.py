@@ -11,7 +11,13 @@ from typing import Optional
 
 
 class AssocProcess:
+    """
+    Classe para processar associações de clientes e enviar e-mails de confirmação.
+    """
     def __init__(self):
+        """
+        Inicializa o objeto AssocProcess, configurando a conexão Redis, PostgreSQL e Mailhog.
+        """
         self.r = redis.Redis(host=settings.redis.host,
                              port=settings.redis.port)
         self.last_id = '0-0'
@@ -19,6 +25,16 @@ class AssocProcess:
         self.mailhog = Mailhog()
 
     async def envia_email_cliente(self, df: pd.DataFrame, tipo_servico: str) -> bool:
+        """
+        Envia um e-mail de confirmação para o cliente após a atualização da associação.
+
+        Args:
+            df (pd.DataFrame): DataFrame contendo os dados do cliente.
+            tipo_servico (str): O tipo de serviço associado à atualização.
+
+        Returns:
+            bool: True se o e-mail foi enviado com sucesso, False caso contrário.
+        """
         nome = df['nome'].values[0]
         email = df['email'].values[0]
         titulo = "Sua associação foi atualizada com sucesso"
@@ -53,6 +69,15 @@ class AssocProcess:
             return False
 
     async def processar_associacao(self, df: pd.DataFrame) -> bool:
+        """
+        Processa uma nova associação de cliente e envia um e-mail de confirmação.
+
+        Args:
+            df (pd.DataFrame): DataFrame contendo os detalhes da associação.
+
+        Returns:
+            bool: True se a associação foi processada com sucesso, False caso contrário.
+        """
         await self.db_connection.connect()
         session = self.db_connection.session
 
@@ -97,6 +122,15 @@ class AssocProcess:
             await self.db_connection.close()
 
     async def upgrade_associacao(self, df: pd.DataFrame) -> bool:
+        """
+        Processa o upgrade de uma associação de cliente e envia um e-mail de confirmação.
+
+        Args:
+            df (pd.DataFrame): DataFrame contendo os detalhes do upgrade de associação.
+
+        Returns:
+            bool: True se o upgrade foi processado com sucesso, False caso contrário.
+        """
         await self.db_connection.connect()
         session = self.db_connection.session
 
@@ -142,6 +176,15 @@ class AssocProcess:
             await self.db_connection.close()
 
     async def ativacao_associacao(self, df: pd.DataFrame) -> bool:
+        """
+        Processa a ativação de uma associação de cliente e envia um e-mail de confirmação.
+
+        Args:
+            df (pd.DataFrame): DataFrame contendo os detalhes da ativação de associação.
+
+        Returns:
+            bool: True se a ativação foi processada com sucesso, False caso contrário.
+        """
         await self.db_connection.connect()
         session = self.db_connection.session
 
@@ -187,6 +230,12 @@ class AssocProcess:
             await self.db_connection.close()
 
     async def process_message(self, message):
+        """
+        Processa uma mensagem recebida do stream Redis.
+
+        Args:
+            message: Mensagem recebida do stream Redis.
+        """
         stream, message_data = message
 
         for msg_id, msg in message_data:
@@ -224,6 +273,9 @@ class AssocProcess:
             self.last_id = msg_id
 
     async def main(self):
+        """
+        Método principal que lê mensagens do stream Redis e processa as associações.
+        """
         while True:
             messages = self.r.xread(
                 {'stream_app1_app2': self.last_id}, block=1000)
