@@ -2,6 +2,10 @@
 host = "redis"
 port = 6379
 
+[mailhog]
+smtp_host = "mailhog"
+smtp_port = 1025
+
 [database]
 host = "postgres"
 port = 5432
@@ -9,29 +13,89 @@ username = "user_teste"
 password = "S3cur3P4ssw0rd!"
 database = "postgres_teste"
 
+
+[colunas_obrigatorias]
+required_columns = ['data', 'cliente_id', 'detalhes_compra.id_streaming']
+
+insert_colunas = [
+    'data',
+    'cliente_id',
+    'vendedor_id',
+    'detalhes_compra.nome_plano',
+    'detalhes_compra.ativo',
+]
+
+upgrade_colunas = [
+    'data',
+    'cliente_id',
+    'vendedor_id',
+    'detalhes_compra.nome_plano',
+    'detalhes_compra.ativo',
+]
+
+reativacao_colunas = [
+    'data',
+    'cliente_id',
+    'vendedor_id',
+    'detalhes_compra.nome_plano',
+    'detalhes_compra.ativo',
+]
+
 [queries]
 
-insert_livros = """
-                INSERT INTO vendas (data, cliente_id, vendedor_id, tipo_compra, produto_id, quantidade, preco, tipo_pagamento)
-                VALUES (:data, :cliente_id, :vendedor_id, :tipo_compra, :produto_id, :quantidade, :preco, :tipo_pagamento)
-                RETURNING id
-                """
+select_streaming = """SELECT 
+                        nome, link 
+                    FROM 
+                        streaming 
+                    WHERE 
+                        id = :id_steaming
+                    UNION SELECT 
+                        nome, link 
+                    FROM 
+                        streaming 
+                    WHERE 
+                        :id_steaming = 1 AND id IN (1, 2);"""
 
-insert_guias_royalty = """
-                       INSERT INTO guias_royalty (venda_id, data_geracao, status, valor)
-                       VALUES (:venda_id, :data_geracao, :status, :valor)
-                       RETURNING id
-                       """
+select_email_cliente = """ SELECT 
+                                nome, email, cpf
+                            FROM 
+                                cliente 
+                            WHERE 
+                                cpf = :cpf """
+
+nova_associacao = """ INSERT INTO associacao (cliente_id, vendedor_id, data_geracao, plano, ativo)
+                        VALUES (:cliente_id, :vendedor_id, :data_geracao, :plano, :ativo) """
 
 
-insert_comissoes = """
-                   INSERT INTO comissoes (venda_id, vendedor_id, data_pagamento, valor, status)
-                   VALUES (:venda_id, :vendedor_id, :data_pagamento, :valor, :status)
-                   RETURNING id
-                   """
+update_associacao = """ UPDATE associacao
+                    SET plano = :novo_plano
+                    WHERE cliente_id = :cliente_id """
 
 
-insert_guias_remessa = """
-                      INSERT INTO guias_remessa (venda_id, cliente_id, data_geracao, status, data_prevista_entrega)
-                      VALUES (:venda_id, :cliente_id, :data_geracao, :status, :data_prevista_entrega)
-                      """
+select_cliente = """ SELECT assoc.*, cli.nome, cli.email FROM associacao assoc
+                INNER JOIN cliente cli ON assoc.cliente_id = cli.cpf 
+                WHERE assoc.cliente_id = :cpf """
+
+
+ativacao_associacao = """ UPDATE associacao
+                    SET ativo = :ativo
+                    WHERE cliente_id = :cliente_id """
+
+select_associacao_cliente = """ SELECT nome, email FROM cliente WHERE cpf = :cpf """
+
+calcular_comissao_geral = """SELECT 
+                                v.id AS id,
+                                v.nome AS nome_vendedor,
+                                SUM(vf.quantidade) AS total_vendas,
+                                SUM(vf.quantidade * vf.preco) AS total_vendas_valor,
+                                SUM(vf.quantidade * vf.preco * (v.porcentagem / 100)) AS total_recebimentos
+                            FROM
+                                vendedor v
+                            JOIN
+                                vendas vf ON v.id = vf.vendedor_id 
+                            WHERE 
+                                extract(month FROM vf."data") = :mes
+                                AND extract(year FROM vf."data") = :ano
+                                AND (:vendedor_id is null or vf.vendedor_id  = :vendedor_id) 
+                            GROUP BY
+                                v.id;"""

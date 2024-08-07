@@ -106,7 +106,7 @@ class AssocProcess:
                 logger.info("Localizando dados do cliente e enviado email")
                 dados_cliente = await self.db_connection.executa_busca_retorna_df(
                     session,
-                    settings.queries.select_email_cliente,
+                    settings.queries.select_associacao_cliente,
                     df,
                     {"cliente_id": "cpf"},
                 )
@@ -195,8 +195,11 @@ class AssocProcess:
         await self.db_connection.connect()
         session = self.db_connection.session
 
-        if not all(col in df.columns for col in settings.colunas_obrigatorias.reativacao_colunas):
-            logger.error("DataFrame não contém todas as colunas necessárias")
+        missing_cols = [
+            col for col in settings.colunas_obrigatorias.reativacao_colunas if col not in df.columns]
+        if missing_cols:
+            logger.error(f"DataFrame não contém as seguintes colunas necessárias: {
+                         ', '.join(missing_cols)}")
             await self.db_connection.close()
             return False
 
