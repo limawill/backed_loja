@@ -26,8 +26,10 @@ class CalculoComissaoVendas():
         """
         self.last_id = '0-0'
         self.db_connection = PostgreSQLConnection()
+        self.r = redis.Redis(host=settings.redis.host,
+                             port=settings.redis.port)
 
-    async def comissao_vendedores(self, df: pd.DataFrame) -> Optional[dict]:
+    async def comissao_vendedores(self, df: pd.DataFrame) -> Optional[Dict[int, Dict[str, float]]]:
         """
         Calcula a comissão dos vendedores com base nos dados fornecidos.
 
@@ -35,32 +37,33 @@ class CalculoComissaoVendas():
             df (pd.DataFrame): DataFrame contendo os detalhes das vendas.
 
         Returns:
-            Optional[dict]: Uma lista de dicionários contendo as comissões dos vendedores ou None se houver um erro.
+            Optional[Dict[int, Dict[str, float]]]: Um dicionário contendo as comissões dos vendedores ou None se houver um erro.
         """
         await self.db_connection.connect()
         session = self.db_connection.session
-        try:
-            resultados = []
-            for _, row in df.iterrows():
-                query = text(settings.queries.calcular_comissao_geral)
-                result = session.execute(query, {
-                    'ano': int(row['ano']),
-                    'mes': int(row['mes']),
-                    'vendedor_id': int(row['vendedor_id'])
-                })
-                rows = result.fetchall()
-                colunas = result.keys()
 
-                # Converte as linhas em uma lista de dicionários
-                for row in rows:
-                    resultado_dict = {
-                        coluna: valor for coluna, valor in zip(colunas, row)}
-                    resultados.append(resultado_dict)
+        resultados = {}
+
+        try:
+            for _, row in df.iterrows():
+
+                logger.info("Iniciando busca de dados na tabela comissão")
+                resultado_busca = await self.db_connection.executa_busca_retorna_df(
+                    session,
+                    settings.queries.calcular_comissao_geral,
+                    df,
+                    {
+                        "vendedor_id": "vendedor_id",
+                        "mes": "mes",
+                        'ano': 'ano'
+                    }
+                )
+            resultados = resultado_busca.to_dict(orient='records')
 
             return resultados if resultados else None
 
         except SQLAlchemyError as e:
-            session.rollback()
+            await session.rollback()  # Certifique-se de usar await com rollback
             logger.error(f"Erro ao calcular comissões: {e}")
             return None
 
@@ -79,7 +82,12 @@ class CalculoComissaoVendas():
         for msg_id, msg in message_data:
             json_data = msg[b'data'].decode('utf-8')
             json_dict = json.loads(json_data)
+
             df = pd.json_normalize(json_dict)
+            df = df.astype(
+                {"ano": "int16", "mes": "int16", "vendedor_id": "int16"})
+
+            logger.info(df.dtypes)
 
             # logger.info(f"Recebemos a mensagem: {list(df.columns)}")
 
@@ -89,14 +97,14 @@ class CalculoComissaoVendas():
                     "Comissão calculada com sucesso")
                 # Enviar confirmação para app1
                 vendedores_json = json.dumps(vendedores)
-                r.xadd('stream_app5_app1', {
-                       'status': 'true', 'vendedores': vendedores_json})
+                self.r.xadd('stream_app5_app1', {
+                    'status': 'true', 'vendedores': vendedores_json})
                 logger.info("Confirmação enviada para app1.")
             else:
                 logger.info(
                     "Erro ao calcular comissões.")
                 # Enviar confirmação para app1
-                r.xadd('stream_app5_app1', {'status': 'false'})
+                self.r.xadd('stream_app5_app1', {'status': 'false'})
                 logger.info("Confirmação enviada para app1.")
 
             # Atualizar o ID da última mensagem processada
@@ -107,7 +115,8 @@ class CalculoComissaoVendas():
         Método principal que lê mensagens do stream Redis e processa as comissões dos vendedores.
         """
         while True:
-            messages = r.xread({'stream_app1_app5': self.last_id}, block=1000)
+            messages = self.r.xread(
+                {'stream_app1_app5': self.last_id}, block=1000)
             if messages:
                 for message in messages:
                     await self.process_message(message)
