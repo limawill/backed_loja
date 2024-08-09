@@ -1,0 +1,271 @@
+{
+	"info": {
+		"_postman_id": "25f708a3-9eaf-4ebd-b8af-4e476e362ca8",
+		"name": "Desafio - BHub",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29093578"
+	},
+	"item": [
+		{
+			"name": "Produto - Livro",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"data\": \"2024-07-25\",\n  \"cliente_id\": \"123.456.789-00\",\n  \"vendedor_id\": \"1\",\n  \"tipo_compra\": \"produto_fisico\",\n  \"detalhes_compra\": {\n    \"produto_id\": \"8\",\n    \"tipo_produto\": \"livro\",  \n    \"quantidade\": 1,\n    \"preco\": 150.00,\n    \"nome_produto\": \"The Two Towers\",\n    \"tipo_pagamento\": \"PIX\",\n    \"especificacoes\": \"null\",  \n    \"garantia\": 0,  \n    \"autor\": \"J.R.R. Tolkien\",  \n    \"isbn\": \"978-0-618-00224-4\",\n    \"valor_royalty\" : \"6%\"   \n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8001/processar_compra",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"processar_compra"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Produto Fisico",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"data\": \"2024-07-29\",\n    \"cliente_id\": \"901.234.567-89\",\n    \"vendedor_id\": \"2\",\n    \"tipo_compra\": \"produto_fisico\",\n    \"detalhes_compra\": {\n        \"produto_id\": \"1\",\n        \"tipo_produto\": \"laptop\",\n        \"quantidade\": 1,\n        \"preco\": 1500.00,\n        \"nome_produto\": \"laptop LeNovo\",\n        \"tipo_pagamento\": \"Cartão\",\n        \"especificacoes\": \"4gb memoria, placa de video, processador intel\",\n        \"garantia\": 24,\n        \"autor\": \"null\",\n        \"isbn\": \"null\",\n        \"valor_royalty\" : \"null\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8001/processar_compra",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"processar_compra"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Associação - Ativar",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"data\": \"2024-08-1\",\n    \"cliente_id\": \"901.234.567-89\",\n    \"vendedor_id\": \"1\",\n    \"tipo_assinatura\": \"ativacao_associacao\",\n    \"detalhes_compra\": {\n        \"nome_plano\": \"Plus\",\n        \"ativo\" : \"True\"\n    }\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8001/processar_associacao",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"processar_associacao"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Associação - Upgrade",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"data\": \"2024-08-1\",\n    \"cliente_id\": \"456.789.012-34\",\n    \"vendedor_id\": \"1\",\n    \"tipo_assinatura\": \"upgrade_associacao\",\n    \"detalhes_compra\": {\n        \"nome_plano\": \"Plus\",\n        \"ativo\" : \"True\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8001/processar_associacao",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"processar_associacao"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Associação - Nova",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"data\": \"2024-08-1\",\n    \"cliente_id\": \"456.789.012-34\",\n    \"vendedor_id\": \"1\",\n    \"tipo_assinatura\": \"nova_associacao\",\n    \"detalhes_compra\": {\n        \"nome_plano\": \"Básico\",\n        \"ativo\" : \"True\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8001/processar_associacao",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"processar_associacao"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Streaming",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"data\": \"2024-08-1\",\n    \"cliente_id\": \"901.234.567-89\",\n        \"detalhes_compra\": {\n        \"id_streaming\": \"6\"\n    }\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8001/streaming",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"streaming"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Comissao_vendedores",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"mes\": 7,\n    \"ano\": 2024,\n    \"vendedor_id\": 1\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8001/calcular_comissao",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"calcular_comissao"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Gerar Remessa",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"codigo_venda\": 1\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8001/gera_remessa",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"gera_remessa"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Teste de conexão",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"data\": \"2024-07-29\",\n  \"cliente_id\": \"123.456.789-00\",\n  \"vendedor_id\": \"1\",\n  \"tipo_compra\": \"produto_fisico\",\n  \"detalhes_compra\": {\n    \"produto_id\": \"123\",\n    \"tipo_produto\": \"livro\",  \n    \"quantidade\": 1,\n    \"preco\": 150.00,\n    \"nome_produto\": \"The Two Towers\",\n    \"tipo_pagamento\": \"PIX\",\n    \"especificacoes\": \"null\",  \n    \"garantia\": 0,  \n    \"autor\": \"J.R.R. Tolkien\",  \n    \"isbn\": \"978-0-618-00224-4\"  \n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8001/test_connection",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"test_connection"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
