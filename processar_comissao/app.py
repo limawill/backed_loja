@@ -11,9 +11,6 @@ from datetime import datetime, timedelta
 from sqlalchemy.exc import SQLAlchemyError
 from tools.db_connection import PostgreSQLConnection
 
-# Configurar Redis
-r = redis.Redis(host=settings.redis.host, port=settings.redis.port)
-
 
 class CalculoComissaoVendas():
     """
@@ -63,7 +60,6 @@ class CalculoComissaoVendas():
             return resultados if resultados else None
 
         except SQLAlchemyError as e:
-            await session.rollback()  # Certifique-se de usar await com rollback
             logger.error(f"Erro ao calcular comissões: {e}")
             return None
 
@@ -86,11 +82,6 @@ class CalculoComissaoVendas():
             df = pd.json_normalize(json_dict)
             df = df.astype(
                 {"ano": "int16", "mes": "int16", "vendedor_id": "int16"})
-
-            logger.info(df.dtypes)
-
-            # logger.info(f"Recebemos a mensagem: {list(df.columns)}")
-
             vendedores = await self.comissao_vendedores(df)
             if vendedores is not None:
                 logger.info(

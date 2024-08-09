@@ -41,6 +41,30 @@ reativacao_colunas = [
     'detalhes_compra.ativo',
 ]
 
+
+colunas_exigidas_vendas = [
+    'data',
+    'cliente_id',
+    'vendedor_id',
+    'tipo_compra',
+    'detalhes_compra.produto_id',
+    'detalhes_compra.quantidade',
+    'detalhes_compra.preco',
+    'detalhes_compra.tipo_pagamento',
+]
+
+
+[empresa]
+Nome = "Nova Terra Comércio Ltda."
+Endereco = "Rua Dr. José Maria Rodrigues, 123, Centro, CEP 13010-010"
+Cidade_estado = "Campinas, São Paulo"
+Telefone = "(19) 3232-1111"
+CNPJ = "43.745.219/0001-55"
+Peso_total = "20.0"
+Volume = "1"
+Transportadora = "Rápido Norte Transportes Ltda."
+Observacao_venda = "Fragil - Manusear com cuidado"
+
 [queries]
 
 select_streaming = """SELECT 
@@ -99,3 +123,54 @@ calcular_comissao_geral = """SELECT
                                 AND (:vendedor_id is null or vf.vendedor_id  = :vendedor_id) 
                             GROUP BY
                                 v.id;"""
+
+
+gera_guia_remessa = """SELECT 
+                    	CONCAT('GR-', vend.id) as numero_guia,
+						TO_CHAR(CURRENT_DATE, 'DD/MM/YYYY')  AS data_emissao,
+						client.nome as destinatario_nome,
+						client.telefone as destinatario_telefone,
+						concat(client.endereco, ', ', client.cidade, '/', client.estado, ' - ', client.cep) AS destinatario_endereco,
+						client.cpf as destinatario_cnpj,
+						prod.id as produto_codigo,
+						prod.nome as produto_descricao,
+						prod.tipo as produto_tipo,
+						vend.quantidade as produto_quantidade,
+						vend.preco as produto_valor_unitario,
+						vend.preco * vend.quantidade as produto_valor_total,
+						vend.tipo_pagamento as condicoes_pagamento,
+						CASE WHEN prod.tipo LIKE '%livro%' THEN TRUE ELSE FALSE END AS royalty
+                    FROM 
+                    	cliente client
+                    JOIN
+                    	vendas vend on vend.cliente_id = client.cpf 
+                    JOIN 
+                    	produtos prod on vend.produto_id = prod.id 
+                    WHERE
+                    	vend.id = :codigo_venda """
+
+
+insert_livros = """
+                INSERT INTO vendas (data, cliente_id, vendedor_id, tipo_compra, produto_id, quantidade, preco, tipo_pagamento)
+                VALUES (:data, :cliente_id, :vendedor_id, :tipo_compra, :produto_id, :quantidade, :preco, :tipo_pagamento)
+                RETURNING id
+                """
+
+insert_guias_royalty = """
+                       INSERT INTO guias_royalty (venda_id, data_geracao, status, valor)
+                       VALUES (:venda_id, :data_geracao, :status, :valor)
+                       RETURNING id
+                       """
+
+
+insert_comissoes = """
+                   INSERT INTO comissoes (venda_id, vendedor_id, data_pagamento, valor, status)
+                   VALUES (:venda_id, :vendedor_id, :data_pagamento, :valor, :status)
+                   RETURNING id
+                   """
+
+
+insert_guias_remessa = """
+                      INSERT INTO guias_remessa (venda_id, cliente_id, data_geracao, status, data_prevista_entrega)
+                      VALUES (:venda_id, :cliente_id, :data_geracao, :status, :data_prevista_entrega)
+                      """
