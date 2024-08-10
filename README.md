@@ -108,3 +108,60 @@ http://localhost:8025/#
 Você tem acesso aos emails enviado pela API
 
 <img src="/adds/Imagens/mailhog.png">
+
+## Rodando os testes
+
+Para rodar os testes, rode o seguinte comando
+
+```bash
+python -m pytest tests/
+```
+
+Para verificar a taxa de cobertura dos testes:
+
+```bash
+ python -m pytest tests/ --cov
+```
+
+```sh
+---------- coverage: platform linux, python 3.12.2-final-0 -----------
+Name                                                          Stmts   Miss  Cover
+---------------------------------------------------------------------------------
+config.py                                                         5      0   100%
+processar_associacao/app.py                                     143     64    55%
+processar_comissao/app.py                                        58      8    86%
+processar_guia_remessa/app.py                                    91     23    75%
+processar_streaming/app.py                                       90     30    67%
+produto_fisico/app.py                                           106     17    84%
+tools/db_connection.py                                           63     34    46%
+tools/mailhog.py                                                 21      2    90%
+---------------------------------------------------------------------------------
+TOTAL                                                          1201    188    84%
+```
+
+## Melhorias
+
+Alguns pontos de melhoria que pretendo melhorar:
+
+1. Validação de Dados:
+
+   > Melhorar a validação dos dados recebidos no DataFrame para garantir que todos os campos necessários estão presentes e corretamente formatados antes de processar
+
+2. Tratamento de Exceções
+   > Adicionar tratamento de exceções mais específico para capturar e lidar com erros durante o processamento de mensagens e a geração de guias de remessa
+3. Desempenho e Escalabilidade
+   > Considerar a implementação de otimizações para melhorar o desempenho, especialmente em cenários de alto volume de mensagens. Avaliar o impacto da pausa (await asyncio.sleep) e ajustar conforme necessário
+4. Logging e Monitoramento
+   > Melhorar a granularidade do logging para incluir informações adicionais sobre o estado das operações e os dados processados. Isso pode ajudar na identificação e resolução de problemas.
+5. Documentação e Testes
+   > Adicionar documentação mais detalhada para métodos complexos e garantir que existam testes automatizados cobrindo diferentes cenários de uso, como a manipulação de dados incorretos ou casos extremos. Aumentar a cobertura de log de cada classe para chegar a uma porcentagem de 90 á 100%
+6. Segurança
+   > Verificar e garantir que as conexões com o banco de dados e o Redis estão seguras e que não há vulnerabilidades associadas ao gerenciamento de dados sensíveis
+
+## Autores
+
+- [@limawil83](https://www.github.com/limawill)
+
+## License
+
+GPL
